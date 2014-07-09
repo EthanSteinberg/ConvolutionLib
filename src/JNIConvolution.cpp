@@ -6,7 +6,7 @@
 MultidimensionalArray enclose(JNIEnv *env, jdoubleArray arr, jint size, jint dims)
 {
     MultidimensionalArray aEnclosed;
-    aEnclosed.arr = (*env)->GetDoubleArrayElements(env,arr,NULL);
+    aEnclosed.arr = env->GetDoubleArrayElements(arr,NULL);
     aEnclosed.size = size;
     aEnclosed.dims = dims;
     aEnclosed.actualSize = (int) pow(size,dims);
@@ -17,10 +17,9 @@ MultidimensionalArray enclose(JNIEnv *env, jdoubleArray arr, jint size, jint dim
 
 jdoubleArray extract(JNIEnv *env, MultidimensionalArray arr)
 {
-    jdoubleArray result = (*env)->NewDoubleArray(env,arr.actualSize);
+    jdoubleArray result = env->NewDoubleArray(arr.actualSize);
 
-    (*env)->SetDoubleArrayRegion(env,result,0,arr.actualSize,arr.arr);
-
+    env->SetDoubleArrayRegion(result,0,arr.actualSize,arr.arr);
 
     return result;
 }
@@ -33,9 +32,9 @@ JNIEXPORT jdoubleArray JNICALL Java_convolutionlib_JNIConvolution_performConvolu
 
     MultidimensionalArray result = performConvolution(aEnclosed,bEnclosed);
 
-    (*env)->ReleaseDoubleArrayElements(env,a, aEnclosed.arr,JNI_ABORT);
+    env->ReleaseDoubleArrayElements(a, aEnclosed.arr,JNI_ABORT);
 
-    (*env)->ReleaseDoubleArrayElements(env,b, bEnclosed.arr,JNI_ABORT);
+    env->ReleaseDoubleArrayElements(b, bEnclosed.arr,JNI_ABORT);
 
 
     jdoubleArray javaResult = extract(env,result);

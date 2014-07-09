@@ -1,7 +1,7 @@
 #ifndef CONVOLUTION_H
 #define CONVOLUTION_H
 
-#include <complex.h> 
+#include <complex>
 
 #include <fftw3.h>
 
@@ -15,7 +15,7 @@ typedef struct
 
 typedef struct
 {
-    complex *arr;
+    std::complex<double> *arr;
     int dims;
     int size;
     int actualSize;

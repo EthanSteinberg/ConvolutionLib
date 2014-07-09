@@ -1,12 +1,12 @@
 ifeq (1, 0)
-	CC = x86_64-w64-mingw32-gcc
+	CXX = x86_64-w64-mingw32-g++
 	JNI_INCLUDE = /usr/lib/jvm/java-8-oracle/include/win32
 	LIB_FOLDER = lib/win32
 	LIB_PREFIX = 
 	LIB_EXTENSION = .dll
 	EXE_EXTENSION = .exe
 else
-	CC = gcc
+	CXX = g++
 	JNI_INCLUDE = /usr/lib/jvm/java-8-oracle/include/linux
 	LIB_FOLDER = lib/linux
 	LIB_EXTENSION = .so
@@ -15,11 +15,11 @@ else
 endif
 
 
-SRCS = src/convolution.c src/main.c src/JNIConvolution.c
-DEPS = $(SRCS:.c=.d)
-OBJECTS = $(SRCS:.c=.o)
+SRCS = src/convolution.cpp src/main.cpp src/JNIConvolution.cpp
+DEPS = $(SRCS:.cpp=.d)
+OBJECTS = $(SRCS:.cpp=.o)
 
-CFLAGS = -std=c99 -Wall -fPIC -O2 -ffast-math -march=native
+CXXFLAGS = -std=c++11 -Wall -fPIC -march=native -g
 CPPFLAGS := -I /usr/lib/jvm/java-8-oracle/include -I ${JNI_INCLUDE} -I ./include
 
 LFLAGS = -L ${LIB_FOLDER}
@@ -33,14 +33,14 @@ default: ${LIBRARY} ${EXECUTABLE} convolutionlib/JNIConvolution.class
 
 -include $(DEPS)
 
-%.d : %.c
-	$(CC) ${CPPFLAGS} $(CCFLAGS) -MF"$@" -MM -MT"$@" -MT"$(<:.c=.o)" "$<"
+%.d : %.cpp
+	$(CXX) ${CPPFLAGS} $(CCFLAGS) -MF"$@" -MM -MT"$@" -MT"$(<:.cpp=.o)" "$<"
 
 ${LIBRARY}: $(OBJECTS)
-		$(CC) -shared ${OBJECTS} ${LFLAGS} ${LIBS} -o $@ 
+	$(CXX) -shared ${OBJECTS} ${LFLAGS} ${LIBS} -o $@ 
 
 ${EXECUTABLE}: $(OBJECTS)
-		$(CC) ${OBJECTS} ${LFLAGS} ${LIBS} -o $@
+	$(CXX) ${OBJECTS} ${LFLAGS} ${LIBS} -o $@
 
 %.class: %.java
 	javac $<

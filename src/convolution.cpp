@@ -1,12 +1,11 @@
 #include "convolution.h"
+#include "convolution.hpp"
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
 
 #include <fftw3.h>
 #include <string.h>
-
-MultidimensionalArray performConvolutionFast(MultidimensionalArray one, MultidimensionalArray two);
 
 int myPow(int a, int b)
 {
@@ -17,6 +16,73 @@ int myPow(int a, int b)
     }
     return product;
 }
+
+std::complex<double>* allocateComplexFFTW(int complexSize)
+{
+     return reinterpret_cast<std::complex<double>*>(fftw_alloc_complex(complexSize));
+}
+
+
+Convolution::Convolution(int size, int dims) : 
+    size(size), 
+    dims(dims), 
+    totalSize(myPow(size,dims)),
+    complexSize(myPow(size,dims-1) * (size/2+1)),
+
+    aCopy(fftw_alloc_real(totalSize)),
+    bCopy(fftw_alloc_real(totalSize)),
+
+    aFFT(allocateComplexFFTW(complexSize)),
+    bFFT(allocateComplexFFTW(complexSize)),
+
+    result(fftw_alloc_real(totalSize))
+{
+    std::vector<int> sizes(dims,size);
+
+
+    aFFTPlan = fftw_plan_dft_r2c(dims, sizes.data(),
+       aCopy.get(), reinterpret_cast< double (*) [2]>(aFFT.get()),
+       FFTW_ESTIMATE);
+
+    bFFTPlan = fftw_plan_dft_r2c(dims, sizes.data(),
+       bCopy.get(), reinterpret_cast< double (*) [2]>(bFFT.get()),
+       FFTW_ESTIMATE);
+
+    resultInversePlan = fftw_plan_dft_c2r(dims, sizes.data(),
+       reinterpret_cast< double (*) [2]>(aFFT.get()), result.get(),
+       FFTW_ESTIMATE);
+
+
+}
+
+Convolution::~Convolution()
+{
+    fftw_destroy_plan(aFFTPlan);
+    fftw_destroy_plan(bFFTPlan);
+    fftw_destroy_plan(resultInversePlan);
+}
+
+const double* Convolution::convolute(const double* a, const double* b)
+{
+    memcpy(aCopy.get(),a,totalSize*sizeof(double));
+    memcpy(bCopy.get(),b,totalSize*sizeof(double));
+
+    fftw_execute(aFFTPlan);
+    fftw_execute(bFFTPlan);
+
+    for (int i = 0; i < complexSize; i++)
+    {
+        aFFT.get()[i] *= bFFT.get()[i]/static_cast<double>(totalSize);
+    }
+
+    fftw_execute(resultInversePlan);
+
+    return result.get();
+}
+
+MultidimensionalArray performConvolutionFast(MultidimensionalArray one, MultidimensionalArray two);
+
+
 
 MultidimensionalArray performConvolution(MultidimensionalArray one, MultidimensionalArray two)
 {
@@ -31,7 +97,7 @@ MultidimensionalArray performConvolution(MultidimensionalArray one, Multidimensi
 ComplexMultidimensionalArray fft(MultidimensionalArray arr)
 {
 
-    int* sizes = malloc(sizeof(int) * arr.dims);
+    int* sizes = new int[arr.dims];
 
     for (int i = 0; i < arr.dims;i++)
         sizes[i] = arr.size;
@@ -41,14 +107,14 @@ ComplexMultidimensionalArray fft(MultidimensionalArray arr)
 
     ComplexMultidimensionalArray result;
     
-    result.arr = fftw_alloc_complex(N);
+    result.arr = reinterpret_cast<std::complex<double>*>(fftw_alloc_complex(N));
 
     result.size = arr.size;
     result.dims = arr.dims;
     result.actualSize = N;
 
     fftw_plan p = fftw_plan_dft_r2c(arr.dims, sizes,
-       arr.arr, result.arr,
+       arr.arr, reinterpret_cast< double (*) [2]>(result.arr),
        FFTW_ESTIMATE);
 
     fftw_execute(p); /* repeat as needed */
@@ -63,7 +129,7 @@ ComplexMultidimensionalArray fft(MultidimensionalArray arr)
 
 MultidimensionalArray inverseFFT(ComplexMultidimensionalArray arr)
 {
-    int* sizes = malloc(sizeof(int) * arr.dims);
+    int* sizes = new int[arr.dims];
 
     for (int i = 0; i < arr.dims;i++)
         sizes[i] = arr.size;
@@ -79,7 +145,7 @@ MultidimensionalArray inverseFFT(ComplexMultidimensionalArray arr)
     result.actualSize = N;
 
     fftw_plan p = fftw_plan_dft_c2r(arr.dims, sizes,
-       arr.arr, result.arr,
+       reinterpret_cast< double (*) [2]>(arr.arr), result.arr,
        FFTW_ESTIMATE);
 
     fftw_execute(p); /* repeat as needed */
