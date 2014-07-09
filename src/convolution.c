@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <string.h>
 
 #include <fftw3.h>
+#include <string.h>
 
 void slowConvoluteInner(int* indices, int currentDimension, MultidimensionalArray one, MultidimensionalArray two, MultidimensionalArray result);
 MultidimensionalArray performConvolutionSlow(MultidimensionalArray one, MultidimensionalArray two);
@@ -227,22 +227,6 @@ MultidimensionalArray inverseFFT(ComplexMultidimensionalArray arr)
 
     return result;
 
-} 
-
-void enlargeRecurse(int *indices, int currentDimension, MultidimensionalArray source,MultidimensionalArray destination)
-{
-    if (currentDimension == source.dims)
-    {
-        set(indices,destination,get(indices,source));
-    }
-    else
-    {
-        for (int i = 0; i < source.size; i++)
-        {
-            indices[currentDimension] = i;
-            enlargeRecurse(indices,currentDimension+1,source,destination);
-        }
-    }
 }
 
 MultidimensionalArray enlarge(MultidimensionalArray arr)
@@ -257,12 +241,12 @@ MultidimensionalArray enlarge(MultidimensionalArray arr)
     result.dims = arr.dims;
     result.actualSize = N;
 
-    if (arr.actualSize != result.actualSize)
-        printf("The sizes are different\n");
+    if (result.actualSize != arr.actualSize)
+        printf("Bad enlarge, should be same sizes\n");
 
-    memcpy(result.arr,arr.arr,arr.actualSize);
+    memcpy(result.arr,arr.arr,arr.actualSize * sizeof(double));
 
-   return result;
+    return result;
 }
 
 MultidimensionalArray performConvolutionFast(MultidimensionalArray one, MultidimensionalArray two)
@@ -270,6 +254,10 @@ MultidimensionalArray performConvolutionFast(MultidimensionalArray one, Multidim
 
     one = enlarge(one);
     two = enlarge(two);
+
+    for (int i = 0; i < one.actualSize; i++)
+        printf("%lf ",one.arr[i]);
+    printf("\n");
 
 
 
