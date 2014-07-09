@@ -255,12 +255,6 @@ MultidimensionalArray performConvolutionFast(MultidimensionalArray one, Multidim
     one = enlarge(one);
     two = enlarge(two);
 
-    for (int i = 0; i < one.actualSize; i++)
-        printf("%lf ",one.arr[i]);
-    printf("\n");
-
-
-
     ComplexMultidimensionalArray oneChanged = fft(one);
     ComplexMultidimensionalArray twoChanged = fft(two);
 

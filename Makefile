@@ -1,7 +1,8 @@
-ifeq (1, 0)
+ifeq (1, 1)
 	CC = x86_64-w64-mingw32-gcc
 	JNI_INCLUDE = /usr/lib/jvm/java-8-oracle/include/win32
 	LIB_FOLDER = lib/win32
+	LIB_PREFIX = 
 	LIB_EXTENSION = .dll
 	EXE_EXTENSION = .exe
 else
@@ -9,6 +10,7 @@ else
 	JNI_INCLUDE = /usr/lib/jvm/java-8-oracle/include/linux
 	LIB_FOLDER = lib/linux
 	LIB_EXTENSION = .so
+	LIB_PREFIX = lib
 	EXE_EXTENSION = 
 endif
 
@@ -27,7 +29,7 @@ LFLAGS = -L ${LIB_FOLDER}
 LIBS = -lfftw3-3 -lm
 
 EXECUTABLE := program${EXE_EXTENSION}
-LIBRARY := libJNIConvolution${LIB_EXTENSION}
+LIBRARY := ${LIB_PREFIX}JNIConvolution${LIB_EXTENSION}
 
 default: ${LIBRARY} ${EXECUTABLE} 
 
