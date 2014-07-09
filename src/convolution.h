@@ -22,13 +22,7 @@ typedef struct
 } ComplexMultidimensionalArray;
 
 
-MultidimensionalArray createOfSize(MultidimensionalArray source);
-
-
 MultidimensionalArray performConvolution(MultidimensionalArray one, MultidimensionalArray two);
-
-MultidimensionalArray enlarge(MultidimensionalArray arr);
-
 
 
 #endif

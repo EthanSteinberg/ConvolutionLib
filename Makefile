@@ -15,16 +15,14 @@ else
 endif
 
 
-
-HEADERS = convolution.h convolutionlib_JNIConvolution.h
-OBJECTS = src/convolution.o src/main.o src/JNIConvolution.o
+SRCS = src/convolution.c src/main.c src/JNIConvolution.c
+DEPS = $(SRCS:.c=.d)
+OBJECTS = $(SRCS:.c=.o)
 
 CFLAGS = -std=c99 -Wall -fPIC -O2 -ffast-math -march=native
 CPPFLAGS := -I /usr/lib/jvm/java-8-oracle/include -I ${JNI_INCLUDE} -I ./include
 
 LFLAGS = -L ${LIB_FOLDER}
-
-
 
 LIBS = -lfftw3-3 -lm
 
@@ -33,14 +31,20 @@ LIBRARY := ${LIB_PREFIX}JNIConvolution${LIB_EXTENSION}
 
 default: ${LIBRARY} ${EXECUTABLE} 
 
+include $(DEPS)
+
+%.d : %.c
+	$(CC) ${CPPFLAGS} $(CCFLAGS) -MF"$@" -MM -MT"$@" -MT"$(<:.c=.o)" "$<"
 
 ${LIBRARY}: $(OBJECTS)
-	    $(CC) -shared ${OBJECTS} ${LFLAGS} ${LIBS} -o $@ 
+		$(CC) -shared ${OBJECTS} ${LFLAGS} ${LIBS} -o $@ 
 
 ${EXECUTABLE}: $(OBJECTS)
 		$(CC) ${OBJECTS} ${LFLAGS} ${LIBS} -o $@
 
 clean:
-	-rm -f $(OBJECTS)
-	-rm -f $(LIBRARY)
-	-rm -r $(EXECUTABLE)
+	-rm  $(OBJECTS)
+	-rm  $(DEPS)
+	-rm  $(LIBRARY)
+	-rm  $(EXECUTABLE)
+	
