@@ -1,4 +1,4 @@
-ifeq (1, 1)
+ifeq (1, 0)
 	CC = x86_64-w64-mingw32-gcc
 	JNI_INCLUDE = /usr/lib/jvm/java-8-oracle/include/win32
 	LIB_FOLDER = lib/win32
