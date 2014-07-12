@@ -7,17 +7,18 @@
 
 #include <fftw3.h>
 
-class Convolution
+class ConvolutionEngine
 {
 public:
-    Convolution(int size, int dims);
-    ~Convolution();
+    ConvolutionEngine(int size, int dims);
+    ~ConvolutionEngine();
     const double* convolute(const double* a, const double* b);
 
-private:
     const int size;
     const int dims;
     const int totalSize;
+    
+private:
     const int complexSize;
 
     struct FFTWDeleter {

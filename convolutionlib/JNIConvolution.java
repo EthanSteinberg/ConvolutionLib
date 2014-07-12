@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 
-public class JNIConvolution
+public class JNIConvolution implements AutoCloseable
 {
     
 
@@ -26,8 +26,27 @@ public class JNIConvolution
             throw new RuntimeException("Fail with sizes " + neededSize + " " + a.length + " " + b.length);
         }
 
-        long engine = internalConvolutionEngines.computeIfAbsent(size,notUsed->setupConvolution(size,dims));
+        if (!internalConvolutionEngines.containsKey(size))
+            throw new RuntimeException("You need to prepare the engine for a certain size before convoluting.");
+        
+        long engine = internalConvolutionEngines.get(size);
         return performConvolution(engine,a,b);
+
+    }
+
+
+    public void prepareEngine(int size)
+    {
+        internalConvolutionEngines.put(size,setupConvolutionEngine(size,dims));
+    }
+
+    @Override
+    public void close()
+    {
+        for (long engine : internalConvolutionEngines.values())
+        {
+            releaseConvolutionEngine(engine);
+        }
 
     }
 
@@ -47,16 +66,19 @@ public class JNIConvolution
 
         System.out.println(Arrays.toString(performConvolutionInC(oneArr,twoArr,size,dims)));
 
-        JNIConvolution foo = new JNIConvolution(2);
-
-        double result[] = foo.convolute(oneArr,twoArr,size);
-        System.out.println(Arrays.toString(result));
+        try (JNIConvolution foo = new JNIConvolution(dims))
+        {
+            foo.prepareEngine(size);
+            double result[] = foo.convolute(oneArr,twoArr,size);
+            System.out.println(Arrays.toString(result));
+        }        
     }
 
     public static native double[] performConvolutionInC(double[] a, double[] b, int size, int dims);
 
-    private static native long setupConvolution(int size, int dims);
+    private static native long setupConvolutionEngine(int size, int dims);
     private static native double[] performConvolution(long engine, double[] a, double[] b);
+    private static native void releaseConvolutionEngine(long engine);
 
     static {
         System.loadLibrary("JNIConvolution");

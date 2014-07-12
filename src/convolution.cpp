@@ -7,7 +7,7 @@
 #include <fftw3.h>
 #include <string.h>
 
-int myPow(int a, int b)
+static int myPow(int a, int b)
 {
     int product = 1;
     for (int i = 0; i < b; ++i)
@@ -23,7 +23,7 @@ std::complex<double>* allocateComplexFFTW(int complexSize)
 }
 
 
-Convolution::Convolution(int size, int dims) : 
+ConvolutionEngine::ConvolutionEngine(int size, int dims) : 
     size(size), 
     dims(dims), 
     totalSize(myPow(size,dims)),
@@ -42,27 +42,25 @@ Convolution::Convolution(int size, int dims) :
 
     aFFTPlan = fftw_plan_dft_r2c(dims, sizes.data(),
        aCopy.get(), reinterpret_cast< double (*) [2]>(aFFT.get()),
-       FFTW_ESTIMATE);
+       FFTW_PATIENT);
 
     bFFTPlan = fftw_plan_dft_r2c(dims, sizes.data(),
        bCopy.get(), reinterpret_cast< double (*) [2]>(bFFT.get()),
-       FFTW_ESTIMATE);
+       FFTW_PATIENT);
 
     resultInversePlan = fftw_plan_dft_c2r(dims, sizes.data(),
        reinterpret_cast< double (*) [2]>(aFFT.get()), result.get(),
-       FFTW_ESTIMATE);
-
-
+       FFTW_PATIENT);
 }
 
-Convolution::~Convolution()
+ConvolutionEngine::~ConvolutionEngine()
 {
     fftw_destroy_plan(aFFTPlan);
     fftw_destroy_plan(bFFTPlan);
     fftw_destroy_plan(resultInversePlan);
 }
 
-const double* Convolution::convolute(const double* a, const double* b)
+const double* ConvolutionEngine::convolute(const double* a, const double* b)
 {
     memcpy(aCopy.get(),a,totalSize*sizeof(double));
     memcpy(bCopy.get(),b,totalSize*sizeof(double));
@@ -192,8 +190,7 @@ MultidimensionalArray performConvolutionFast(MultidimensionalArray one, Multidim
 
     for (int i = 0; i < oneChanged.actualSize; i++)
     {
-        oneChanged.arr[i] = oneChanged.arr[i] * twoChanged.arr[i];
-        oneChanged.arr[i] /= one.actualSize;
+        oneChanged.arr[i] *= twoChanged.arr[i]/static_cast<double>(one.actualSize);
     }
 
    

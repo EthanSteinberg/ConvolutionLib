@@ -5,6 +5,7 @@ ifeq (1, 0)
 	LIB_PREFIX = 
 	LIB_EXTENSION = .dll
 	EXE_EXTENSION = .exe
+	LIB_STATIC = -static
 else
 	CXX = g++
 	JNI_INCLUDE = /usr/lib/jvm/java-8-oracle/include/linux
@@ -12,6 +13,7 @@ else
 	LIB_EXTENSION = .so
 	LIB_PREFIX = lib
 	EXE_EXTENSION = 
+	LIB_STATIC = 
 endif
 
 
@@ -19,12 +21,12 @@ SRCS = src/convolution.cpp src/main.cpp src/JNIConvolution.cpp
 DEPS = $(SRCS:.cpp=.d)
 OBJECTS = $(SRCS:.cpp=.o)
 
-CXXFLAGS = -std=c++11 -Wall -fPIC -march=native -g
+CXXFLAGS = -std=c++11 -Wall -fPIC -march=native -ffast-math -O2
 CPPFLAGS := -I /usr/lib/jvm/java-8-oracle/include -I ${JNI_INCLUDE} -I ./include
 
 LFLAGS = -L ${LIB_FOLDER}
 
-LIBS = -lfftw3-3 -lm
+LIBS := -Wl,-Bdynamic -lfftw3-3 -Wl,-Bstatic ${LIB_STATIC} -static-libgcc -static-libstdc++ 
 
 EXECUTABLE := program${EXE_EXTENSION}
 LIBRARY := ${LIB_PREFIX}JNIConvolution${LIB_EXTENSION}

@@ -5,29 +5,30 @@
 int main()
 {
 
-    Convolution foo(3,2);
+    ConvolutionEngine foo(6,2);
 
-    double oneArr[] = {4,3,7,2,7,9,5,2,7}; 
+    double oneArr[] = { 4,3,7, 0,0,0, 2,7,9, 0,0,0, 5,2,7, 0,0,0,
+                            0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0,
+    }; 
 
-    std::vector<double> oneFoo;
-    oneFoo.assign(oneArr,oneArr+9);
 
+    double twoArr[] = { 6,3,7, 0,0,0, 2,8,4, 0,0,0, 2,7,5, 0,0,0,
+                        0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0,
+
+    };
+
+   
     MultidimensionalArray one;
     one.arr = oneArr;
     one.dims = 2;
-    one.size=3;
-    one.actualSize = 9;
-
-    double twoArr[] = {6,3,7,2,8,4,2,7,5}; 
-
-    std::vector<double> twoFoo;
-    twoFoo.assign(twoArr,twoArr+9);
+    one.size=6;
+    one.actualSize = 36;
 
     MultidimensionalArray two;
     two.arr = twoArr;
     two.dims = 2;
-    two.size=3;
-    two.actualSize = 9;
+    two.size=6;
+    two.actualSize = 36;
 
     MultidimensionalArray result = performConvolution(one,two);
     
